@@ -1,0 +1,1219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Required Field Concepts</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f5bd3'/%3E%3Ccircle cx='11' cy='16' r='4' fill='none' stroke='white' stroke-width='2.5'/%3E%3Ccircle cx='22' cy='16' r='2.5' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+  /* Layout: tabbed comparison; each tab pairs a short concept note with a live form. */
+  :root {
+    --bg: #f3f4f7;
+    --surface: #ffffff;
+    --fg: #1b2130;
+    --muted: #5e6779;
+    --line: #d3d8e2;
+    --accent: #2f5bd3;
+    --on-accent: #ffffff;
+    --accent-soft: #e6ecfb;
+    --ok: #23804a;
+    --ok-soft: #e3f3e9;
+    --error: #c0362c;
+    --font: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b;
+      --surface: #1b2029;
+      --fg: #e5e8ee;
+      --muted: #98a1b1;
+      --line: #343b48;
+      --accent: #7f9dff;
+      --on-accent: #0e1424;
+      --accent-soft: #232c45;
+      --ok: #5cc488;
+      --ok-soft: #1a3226;
+      --error: #ff7a6e;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151b;
+    --surface: #1b2029;
+    --fg: #e5e8ee;
+    --muted: #98a1b1;
+    --line: #343b48;
+    --accent: #7f9dff;
+    --on-accent: #0e1424;
+    --accent-soft: #232c45;
+    --ok: #5cc488;
+    --ok-soft: #1a3226;
+    --error: #ff7a6e;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.5 var(--font);
+    padding-block: 32px 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 24px; }
+  .crumbs { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
+  .crumbs a { color: var(--accent); text-underline-offset: 2px; }
+  .note a { color: var(--accent); text-underline-offset: 2px; }
+  .note .more { margin: 14px 0 0; }
+  header p a { color: var(--accent); text-underline-offset: 2px; }
+  header h1 { margin: 0; font-size: 26px; font-weight: 700; text-wrap: balance; }
+  header p { margin: 6px 0 0; color: var(--muted); max-width: 64ch; }
+
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tab {
+    font: inherit; font-weight: 600; color: var(--muted);
+    background: transparent; border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px 14px; cursor: pointer;
+  }
+  .tab[aria-selected="true"] { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+  .tab:focus-visible, button:focus-visible, summary:focus-visible, .chip:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+
+  .panel { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 28px; align-items: start; }
+  @media (max-width: 760px) { .panel { grid-template-columns: minmax(0, 1fr); } }
+
+  .note h2 { margin: 0 0 8px; font-size: 19px; }
+  .note p { margin: 0 0 12px; color: var(--muted); }
+  .note h3 { margin: 16px 0 6px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .note ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+
+  form {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: clamp(18px, 4vw, 28px); display: grid; gap: 18px; min-width: 0;
+  }
+  .field { display: grid; gap: 6px; }
+  .field > label, .label-row label { font-weight: 600; }
+  .label-row { display: flex; gap: 12px; align-items: baseline; }
+  .label-row label { margin-right: auto; }
+  .hint { color: var(--muted); font-size: 13px; font-weight: 400; }
+  input:not([type="checkbox"]), select, textarea {
+    width: 100%; padding: 9px 11px; font: inherit; color: inherit;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+  }
+  input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
+  textarea { min-height: 84px; resize: vertical; }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+  .field.invalid input:not([type="checkbox"]), .field.invalid select, .field.invalid textarea { border-color: var(--error); }
+  .error { color: var(--error); font-size: 13px; }
+  .error:empty { display: none; }
+  .check { display: flex; gap: 8px; align-items: flex-start; }
+  .check input { margin-top: 4px; accent-color: var(--accent); }
+  .check label { font-weight: 400; }
+
+  .submit {
+    font: inherit; font-weight: 600; padding: 11px; border-radius: 6px; cursor: pointer;
+    color: var(--on-accent); background: var(--accent); border: 1px solid var(--accent);
+    transition: background .2s, color .2s;
+  }
+  .result { font-size: 14px; color: var(--ok); }
+  .result:empty { display: none; }
+  .result pre { margin: 8px 0 0; padding: 10px; color: var(--fg); background: var(--bg); border-radius: 6px; overflow-x: auto; font-size: 12px; }
+
+  /* ---------- A: Split sections ---------- */
+  .group { display: grid; gap: 16px; }
+  .group-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .group-head h3 { margin: 0; font-size: 16px; }
+  .count { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .count.done { color: var(--ok); font-weight: 600; }
+  details.extras { border-top: 1px solid var(--line); padding-top: 14px; }
+  details.extras summary {
+    cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 4px 8px; flex-wrap: wrap;
+    font-weight: 600; color: var(--accent);
+  }
+  details.extras summary::-webkit-details-marker { display: none; }
+  details.extras summary::before { content: "+"; display: inline-block; width: .8em; }
+  details.extras[open] summary::before { content: "–"; }
+  details.extras summary span { margin-left: auto; color: var(--muted); font-weight: 400; font-size: 13px; }
+  details.extras .group { margin-top: 16px; }
+
+  /* ---------- B: Countdown button ---------- */
+  .submit.pending { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+  .meter { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 4px; }
+  .meter i { height: 4px; border-radius: 2px; background: var(--line); transition: background .25s; }
+  .meter i.on { background: var(--ok); }
+  .needed { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); }
+  .chip {
+    font: inherit; font-size: 13px; color: var(--fg); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; cursor: pointer;
+  }
+  .chip:hover { border-color: var(--accent); }
+  .needed.done { color: var(--ok); }
+
+  /* ---------- C: Progress rail ---------- */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); align-items: center; }
+  .legend span { display: inline-flex; gap: 6px; align-items: center; }
+  .rail { position: relative; display: grid; gap: 18px; }
+  .rail::before {
+    content: ""; position: absolute; left: 10px; top: 10px; bottom: 10px; width: 2px; background: var(--line);
+  }
+  .rail-row { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; align-items: start; }
+  .dot {
+    position: relative; justify-self: center; margin-top: 4px;
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid var(--accent); background: var(--surface);
+    display: grid; place-items: center; transition: background .2s, border-color .2s;
+  }
+  .dot svg { width: 10px; height: 10px; opacity: 0; transition: opacity .2s; }
+  .dot.done { background: var(--ok); border-color: var(--ok); }
+  .dot.done svg { opacity: 1; }
+  .dot.bad { border-color: var(--error); }
+  .dot.opt { width: 8px; height: 8px; margin-top: 8px; border: 0; background: var(--line); }
+  .dot.opt.filled { background: var(--muted); }
+  .milestone {
+    font-size: 13px; color: var(--muted); background: var(--bg); border-radius: 6px; padding: 6px 10px;
+    transition: color .2s, background .2s;
+  }
+  .milestone.done { color: var(--ok); background: var(--ok-soft); font-weight: 600; }
+
+  /* ---------- D: Visual weight ---------- */
+  .lede { margin: 0; font-size: 13px; color: var(--muted); }
+  #form-weight .field.is-opt label { color: var(--muted); font-weight: 500; }
+  #form-weight .field.is-opt input:not([type="checkbox"]),
+  #form-weight .field.is-opt select,
+  #form-weight .field.is-opt textarea { background: var(--bg); border-color: transparent; }
+  #form-weight .field.is-opt input:focus,
+  #form-weight .field.is-opt textarea:focus { background: var(--surface); border-color: var(--accent); }
+  #form-weight .field.is-req.pending input:not([type="checkbox"]),
+  #form-weight .field.is-req.pending select { box-shadow: inset 3px 0 0 var(--accent); }
+  #form-weight .field.is-req.pending input:focus,
+  #form-weight .field.is-req.pending select:focus {
+    box-shadow: inset 3px 0 0 var(--accent), 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+  #form-weight .field.is-req.pending .check { padding-left: 10px; box-shadow: inset 3px 0 0 var(--accent); border-radius: 2px; }
+
+  /* ---------- E: One at a time ---------- */
+  .steps-bar { display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 4px; }
+  .steps-bar i { height: 6px; border-radius: 3px; background: var(--line); transition: background .2s, box-shadow .2s; }
+  .steps-bar i.answered { background: var(--ok); }
+  .steps-bar i.skipped { background: transparent; box-shadow: inset 0 0 0 1px var(--muted); }
+  .steps-bar i.current { background: var(--accent); }
+  .step-meta { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .step-tag { color: var(--accent); }
+  .step-tag.done { color: var(--ok); }
+  .step-host { min-height: 120px; }
+  .step-host .field > label, .step-host .label-row label { font-size: 18px; }
+  .step-nav { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .step-nav .submit { flex: 1 1 140px; }
+  .ghost {
+    font: inherit; font-weight: 600; padding: 11px 14px; border-radius: 6px; cursor: pointer;
+    color: var(--muted); background: transparent; border: 1px solid var(--line);
+  }
+  .ghost:hover { color: var(--fg); border-color: var(--muted); }
+  .ghost:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- F: Add-on chips ---------- */
+  .addons { display: grid; gap: 8px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .addons p { margin: 0; font-size: 13px; color: var(--muted); }
+  .addon-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .addon-row .chip { padding: 4px 12px; color: var(--accent); border-style: dashed; background: transparent; }
+  .addon-row .chip::before { content: "+ "; }
+  .remove {
+    font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0; padding: 0;
+    cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+  }
+  .remove:hover { color: var(--error); }
+  .remove:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .submit.muted { opacity: .55; }
+
+  /* ---------- G: Fill-in sentence ---------- */
+  .sentence .main { margin: 0; font-size: 18px; line-height: 2.9; }
+  .blank { position: relative; display: inline-block; }
+  .blank input:not([type="checkbox"]), .blank select {
+    width: auto; padding: 0 2px 2px; font: inherit; line-height: 1.4; color: var(--fg); background: transparent;
+    border: 0; border-bottom: 2px dashed var(--accent); border-radius: 0;
+  }
+  .blank select { padding-right: 4px; cursor: pointer; }
+  .blank input:focus, .blank select:focus { box-shadow: none; border-bottom-style: solid; }
+  .blank.is-req input::placeholder { color: var(--accent); opacity: .75; }
+  .blank.is-req.ok input:not([type="checkbox"]), .blank.is-req.ok select { border-bottom: 2px solid var(--ok); }
+  .blank.is-opt input:not([type="checkbox"]), .blank.is-opt select { border-bottom: 1px dotted var(--muted); }
+  .blank.is-opt.ok input:not([type="checkbox"]) { border-bottom-style: solid; }
+  .blank input[type="checkbox"] { width: 18px; height: 18px; margin: 0 4px 0 0; vertical-align: -3px; accent-color: var(--accent); }
+  .blank .error { position: absolute; left: 0; top: 100%; margin-top: 1px; font-size: 12px; line-height: 1.3; white-space: nowrap; }
+  .blank-status { font-size: 13px; color: var(--muted); }
+  .blank-status.done { color: var(--ok); font-weight: 600; }
+  .ps { display: grid; gap: 2px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); }
+  .ps-label { margin: 0; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+  .ps .main { font-size: 16px; line-height: 3; }
+
+  /* ---------- H: Live preview ---------- */
+  #form-preview { container-type: inline-size; }
+  .pv-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 230px); gap: 24px; align-items: start; }
+  .pv-card {
+    position: sticky; top: calc(16px + env(safe-area-inset-top, 0px));
+    display: grid; gap: 10px; padding: 14px 16px; font-size: 14px;
+    background: var(--bg); border-radius: 8px;
+  }
+  @container (max-width: 560px) {
+    .pv-layout { grid-template-columns: minmax(0, 1fr); }
+    .pv-card { order: -1; position: static; }
+  }
+  .pv-head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-weight: 600; }
+  .pv-state { font-size: 13px; color: var(--accent); }
+  .pv-state.done { color: var(--ok); }
+  .pv-list { margin: 0; display: grid; gap: 8px; }
+  .pv-list div { display: grid; gap: 1px; }
+  .pv-list dt { font-size: 12px; color: var(--muted); }
+  .pv-list dd { margin: 0; overflow-wrap: anywhere; }
+  .pv-sub { padding-top: 10px; border-top: 1px solid var(--line); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .pv-none { font-size: 13px; color: var(--muted); }
+  .pv-gap {
+    font: inherit; font-size: 13px; color: var(--accent); background: transparent; cursor: pointer;
+    border: 1px dashed var(--accent); border-radius: 4px; padding: 1px 8px;
+  }
+  .pv-gap.fix { color: var(--error); border-color: var(--error); }
+  .pv-gap:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- I: Spotlight ---------- */
+  #form-spot .field { border-radius: 4px; transition: background .25s, box-shadow .25s; }
+  #form-spot .field.spot { background: var(--accent-soft); box-shadow: 0 0 0 10px var(--accent-soft); }
+  .spot-tag {
+    margin-left: 8px; padding: 1px 8px; border-radius: 999px; vertical-align: 1px;
+    font-size: 12px; font-weight: 600; color: var(--on-accent); background: var(--accent);
+  }
+  .opt-note { font-size: 13px; color: var(--muted); }
+  #form-spot .submit { transition: box-shadow .25s; }
+  #form-spot .submit.spot-ready { box-shadow: 0 0 0 6px var(--accent-soft); }
+
+  /* ---------- J: Glow on entry ---------- */
+  #form-glow .check { margin: -4px -6px; padding: 4px 6px; border-radius: 6px; }
+  .glow { animation: glow 1.1s ease-out backwards; }
+  @keyframes glow {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent); }
+    20% {
+      border-color: var(--accent); background-color: var(--accent-soft);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent);
+    }
+    100% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--accent) 0%, transparent); }
+  }
+  /* Reduced motion: a brief color change with no spreading ring. */
+  @keyframes glow-still {
+    20%, 60% { border-color: var(--accent); background-color: var(--accent-soft); }
+  }
+  @media (prefers-reduced-motion: reduce) { .glow { animation-name: glow-still; } }
+
+  /* ---------- K: Label on entry ---------- */
+  .opt-suffix {
+    display: inline-block; margin-left: 6px; font-weight: 400; color: var(--muted);
+    opacity: 0; transform: translateX(-4px); transition: opacity .18s, transform .18s;
+  }
+  .opt-suffix.on { opacity: 1; transform: none; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="../../">UI Experiments</a> / Required-field indicators</nav>
+    <h1>Required-field concepts</h1>
+    <p>Eleven ways to show what's needed before someone presses Submit, without asterisks. Each form is live: type, tab through, and skip fields to see how it responds. They all start from the same <a href="baseline.html">baseline form</a>, which uses asterisks.</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Concepts">
+    <button class="tab" role="tab" id="tab-split" aria-controls="split" aria-selected="true">A · Split sections</button>
+    <button class="tab" role="tab" id="tab-countdown" aria-controls="countdown" aria-selected="false">B · Countdown button</button>
+    <button class="tab" role="tab" id="tab-rail" aria-controls="rail" aria-selected="false">C · Progress rail</button>
+    <button class="tab" role="tab" id="tab-weight" aria-controls="weight" aria-selected="false">D · Visual weight</button>
+    <button class="tab" role="tab" id="tab-steps" aria-controls="steps" aria-selected="false">E · One at a time</button>
+    <button class="tab" role="tab" id="tab-addons" aria-controls="addons" aria-selected="false">F · Add-on chips</button>
+    <button class="tab" role="tab" id="tab-sentence" aria-controls="sentence" aria-selected="false">G · Fill-in sentence</button>
+    <button class="tab" role="tab" id="tab-preview" aria-controls="preview" aria-selected="false">H · Live preview</button>
+    <button class="tab" role="tab" id="tab-spotlight" aria-controls="spotlight" aria-selected="false">I · Spotlight</button>
+    <button class="tab" role="tab" id="tab-glow" aria-controls="glow" aria-selected="false">J · Glow on entry</button>
+    <button class="tab" role="tab" id="tab-label" aria-controls="label" aria-selected="false">K · Label on entry</button>
+  </div>
+
+  <section class="panel" id="split" role="tabpanel" aria-labelledby="tab-split">
+    <div class="note">
+      <h2>Split sections</h2>
+      <p>The layout answers the question. Required fields sit together under one heading, and everything optional is tucked behind "Add more details".</p>
+      <h3>Before submit, users see</h3>
+      <ul>
+        <li>A live "2 of 4 done" count on the required group</li>
+        <li>Optional fields hidden until asked for, so nobody fills them by accident</li>
+      </ul>
+      <h3>Trade-offs</h3>
+      <ul>
+        <li>Very quiet; no per-field markers at all</li>
+        <li>Field order follows required/optional rather than topic</li>
+      </ul>
+    </div>
+    <form id="form-split" novalidate>
+      <div class="group">
+        <div class="group-head"><h3>The essentials</h3><span class="count" data-count></span></div>
+        <div class="group" data-slot="req"></div>
+      </div>
+      <details class="extras">
+        <summary>Add more details <span data-extras-note>Optional · 4 fields</span></summary>
+        <div class="group" data-slot="opt"></div>
+      </details>
+      <button class="submit" type="submit">Submit</button>
+      <div class="result" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section class="panel" id="countdown" role="tabpanel" aria-labelledby="tab-countdown" hidden>
+    <div class="note">
+      <h2>Countdown button</h2>
+      <p>Fields keep their natural order. The Submit button tracks what's left, and a "Still needed" line names the missing fields. Tap a name to jump to it.</p>
+      <h3>Before submit, users see</h3>
+      <ul>
+        <li>A segmented meter and "4 required fields left" on the button</li>
+        <li>"Optional" placeholder text inside the fields that can be skipped</li>
+        <li>"Everything else is optional" once the required fields are done</li>
+      </ul>
+      <h3>Trade-offs</h3>
+      <ul>
+        <li>The signal lives at the bottom; on long forms it may be offscreen</li>
+        <li>Optional placeholder disappears once someone types</li>
+      </ul>
+    </div>
+    <form id="form-countdown" novalidate>
+      <div class="group" data-slot="all"></div>
+      <div class="meter" data-meter></div>
+      <button class="submit" type="submit" data-submit>Submit</button>
+      <div class="needed" data-needed aria-live="polite"></div>
+      <div class="result" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section class="panel" id="rail" role="tabpanel" aria-labelledby="tab-rail" hidden>
+    <div class="note">
+      <h2>Progress rail</h2>
+      <p>A thin rail runs down the form. Required fields get a ring that fills with a check when the answer is valid. Optional fields get a small dot.</p>
+      <h3>Before submit, users see</h3>
+      <ul>
+        <li>Which fields matter, scannable down the left edge</li>
+        <li>Empty rings show a skipped required field right away</li>
+        <li>A milestone line that turns green when the required fields are done</li>
+      </ul>
+      <h3>Trade-offs</h3>
+      <ul>
+        <li>Needs a two-item legend the first time</li>
+        <li>Adds a visual element to every row</li>
+      </ul>
+      <p class="more"><a href="rail-columns.html">How the rail works in multi-column layouts</a></p>
+    </div>
+    <form id="form-rail" novalidate>
+      <div class="legend">
+        <span><i class="dot" style="margin:0" aria-hidden="true"></i> Needed</span>
+        <span><i class="dot opt" style="margin:0" aria-hidden="true"></i> Optional</span>
+      </div>
+      <div class="rail" data-slot="all"></div>
+      <div class="milestone" data-milestone aria-live="polite"></div>
+      <button class="submit" type="submit">Submit</button>
+      <div class="result" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section class="panel" id="weight" role="tabpanel" aria-labelledby="tab-weight" hidden>
+    <div class="note">
+      <h2>Visual weight</h2>
+      <p>Styling alone tells the fields apart. Required fields are full strength. Optional fields recede: muted labels, a sunken fill, no border until focused.</p>
+      <h3>Before submit, users see</h3>
+      <ul>
+        <li>An accent edge on every required field that's still empty or invalid</li>
+        <li>The edge clears as each answer becomes valid, so leftover edges are what's left to do</li>
+      </ul>
+      <h3>Trade-offs</h3>
+      <ul>
+        <li>The most "invisible" option; it relies on contrast, so it needs care for low-vision users</li>
+        <li>Screen readers still get <code>aria-required</code>, but sighted users get no words</li>
+      </ul>
+    </div>
+    <form id="form-weight" novalidate>
+      <p class="lede">The faded fields are extras. Fill them only if they help.</p>
+      <div class="group" data-slot="all"></div>
+      <button class="submit" type="submit">Submit</button>
+      <div class="result" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section class="panel" id="steps" role="tabpanel" aria-labelledby="tab-steps" hidden>
+    <div class="note">
+      <h2>One at a time</h2>
+      <p>One question per screen. Whether a question is optional shows up in the controls: optional questions have a Skip button, required ones don't.</p>
+      <h3>Before submit, users see</h3>
+      <ul>
+        <li>Continue checks the answer right away, so nothing is found missing at the end</li>
+        <li>A progress bar that marks answered questions solid and skipped ones hollow</li>
+      </ul>
+      <h3>Trade-offs</h3>
+      <ul>
+        <li>Slower for short forms; people can't scan the whole thing</li>
+        <li>Suits mobile and first-time flows more than forms people fill often</li>
+      </ul>
+    </div>
+    <form id="form-steps" novalidate>
+      <div class="steps-bar" data-bar></div>
+      <div class="step-meta"><span data-pos></span><span class="step-tag" data-tag></span></div>
+      <div class="step-host" data-slot="all"></div>
+      <div class="step-nav">
+        <button class="ghost" type="button" data-back>Back</button>
+        <button class="ghost" type="button" data-skip>Skip</button>
+        <button class="submit" type="button" data-next>Continue</button>
+      </div>
+      <div class="result" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section class="panel" id="addons" role="tabpanel" aria-labelledby="tab-addons" hidden>
+    <div class="note">
+      <h2>Add-on chips</h2>
+      <p>Only the required fields are on the form. Each optional field is a dashed chip that adds the field when tapped, and a Remove link takes it away again.</p>
+      <h3>Before submit, users see</h3>
+      <ul>
+        <li>A short form where every visible field is needed, so there's nothing to label</li>
+        <li>Optional extras are opt-in, one at a time, so nobody fills them by accident</li>
+        <li>Submit stays dimmed until the required fields are valid</li>
+      </ul>
+      <h3>Trade-offs</h3>
+      <ul>
+        <li>Optional fields are easy to miss if you actually want people to fill them in</li>
+        <li>Works best when there are only a few optional fields</li>
+      </ul>
+    </div>
+    <form id="form-addons" novalidate>
+      <div class="group" data-slot="req"></div>
+      <div class="group" data-slot="opt"></div>
+      <div class="addons" data-addons>
+        <p>Want to add anything else?</p>
+        <div class="addon-row" data-chips></div>
+      </div>
+      <div class="group" data-slot="last"></div>
+      <button class="submit" type="submit" data-submit>Submit</button>
+      <div class="result" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section class="panel" id="sentence" role="tabpanel" aria-labelledby="tab-sentence" hidden>
+    <div class="note">
+      <h2>Fill-in sentence</h2>
+      <p>The form reads as a short note. Everything required is part of the main sentence. Optional details sit in a lighter P.S. underneath, which people already understand as extra.</p>
+      <h3>Before submit, users see</h3>
+      <ul>
+        <li>Empty blanks make the main sentence read as unfinished</li>
+        <li>A count under the sentence, which changes to "That's all we need" when it's complete</li>
+      </ul>
+      <h3>Trade-offs</h3>
+      <ul>
+        <li>Only suits short, conversational forms</li>
+        <li>Hard to translate, since word order changes by language</li>
+        <li>Error messages need room under each blank</li>
+      </ul>
+    </div>
+    <form id="form-sentence" class="sentence" novalidate>
+      <p class="main">Hi, my name is <span data-blank="fullName" data-ph="your full name" data-w="13ch"></span> and you can reach me at <span data-blank="email" data-ph="you@example.com" data-w="16ch"></span>. I'm writing about <span data-blank="category" data-ph="choose a topic"></span>.</p>
+      <p class="main"><span data-blank="agree"></span><label for="g-agree">I agree to the terms.</label></p>
+      <div class="blank-status" data-status aria-live="polite"></div>
+      <div class="ps">
+        <p class="ps-label">P.S. Only if it helps</p>
+        <p class="main">You can also call me at <span data-blank="phone" data-ph="555-123-4567" data-w="12ch"></span>. I need <span data-blank="quantity" data-ph="how many" data-w="9.5ch"></span> of them, my website is <span data-blank="website" data-ph="https://example.com" data-w="18ch"></span>, and one more thing: <span data-blank="notes" data-ph="anything else" data-w="20ch"></span></p>
+      </div>
+      <button class="submit" type="submit">Send</button>
+      <div class="result" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section class="panel" id="preview" role="tabpanel" aria-labelledby="tab-preview" hidden>
+    <div class="note">
+      <h2>Live preview</h2>
+      <p>A card beside the form shows what will be sent, filling in as people type. Required items that are still empty appear as dashed "Needed" slots. Optional extras only appear once someone adds them.</p>
+      <h3>Before submit, users see</h3>
+      <ul>
+        <li>A card header that reads "3 missing" until it says "Ready to send"</li>
+        <li>Tapping a missing slot jumps to its field</li>
+        <li>"None added" under Extras, which tells people the rest can stay empty</li>
+      </ul>
+      <h3>Trade-offs</h3>
+      <ul>
+        <li>Takes horizontal space; on phones the card sits above the form and scrolls away</li>
+        <li>Best when the submission has a natural summary, like an order, booking or message</li>
+      </ul>
+    </div>
+    <form id="form-preview" novalidate>
+      <div class="pv-layout">
+        <div class="group" data-slot="all"></div>
+        <aside class="pv-card" aria-label="Preview of your request">
+          <div class="pv-head"><span>Your request</span><span class="pv-state" data-state aria-live="polite"></span></div>
+          <dl class="pv-list" data-req></dl>
+          <div class="pv-sub">Extras</div>
+          <dl class="pv-list" data-opt></dl>
+        </aside>
+      </div>
+      <button class="submit" type="submit">Submit</button>
+      <div class="result" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section class="panel" id="spotlight" role="tabpanel" aria-labelledby="tab-spotlight" hidden>
+    <div class="note">
+      <h2>Spotlight</h2>
+      <p>No markers anywhere. The next required field gets a soft highlight and a "Next" tag. If someone moves past a required field without filling it in, the tag on it changes to "Skipped" and the highlight stays there. Once everything required is done, the highlight moves to Submit.</p>
+      <h3>Before submit, users see</h3>
+      <ul>
+        <li>Where to go next, one field at a time</li>
+        <li>A "Skipped" tag on any required field they passed</li>
+        <li>"Optional. Skip it if you like." under an optional field while they're in it</li>
+      </ul>
+      <h3>Trade-offs</h3>
+      <ul>
+        <li>Shows one thing at a time, so people can't see the full list of what's needed up front</li>
+        <li>A highlight that keeps moving can distract; it has to stay subtle</li>
+      </ul>
+    </div>
+    <form id="form-spot" novalidate>
+      <div class="group" data-slot="all"></div>
+      <button class="submit" type="submit" data-submit>Submit</button>
+      <div class="result" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section class="panel" id="glow" role="tabpanel" aria-labelledby="tab-glow" hidden>
+    <div class="note">
+      <h2>Glow on entry</h2>
+      <p>No markers while the form sits still. Each time someone moves into a field, every required field that still needs an answer glows briefly in a quick top-to-bottom wave, then the form goes quiet again.</p>
+      <h3>Before submit, users see</h3>
+      <ul>
+        <li>What's still needed, every time they move to a new field</li>
+        <li>Finished fields drop out of the glow, so it shrinks as they go</li>
+        <li>The field they're in doesn't glow; it already has the focus ring</li>
+        <li>When nothing required is left, Submit glows instead</li>
+      </ul>
+      <h3>Trade-offs</h3>
+      <ul>
+        <li>Fields scrolled out of view glow where nobody can see them</li>
+        <li>Repeats on every move, which may feel busy on long forms; it could run only for the first few moves, or only after a required field is skipped</li>
+        <li>With reduced motion turned on, it becomes a brief color change with no spreading ring</li>
+      </ul>
+    </div>
+    <form id="form-glow" novalidate>
+      <div class="group" data-slot="all"></div>
+      <button class="submit" type="submit" data-submit>Submit</button>
+      <div class="result" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section class="panel" id="label" role="tabpanel" aria-labelledby="tab-label" hidden>
+    <div class="note">
+      <h2>Label on entry</h2>
+      <p>Labels stay plain while the form sits still. When someone moves into an optional field, "(optional)" fades in after its label, and it fades out again when they leave. Required fields never change.</p>
+      <h3>Before submit, users see</h3>
+      <ul>
+        <li>The word "optional" at the moment they decide whether to fill a field</li>
+        <li>A clean form at rest, with no markers or extra text</li>
+      </ul>
+      <h3>Trade-offs</h3>
+      <ul>
+        <li>People only find out a field is optional after they're in it, so they can't skim ahead</li>
+        <li>It doesn't flag a skipped required field on its own; it pairs well with J (Glow on entry)</li>
+        <li>Screen readers always hear "optional" in the label, since the visible word comes and goes</li>
+      </ul>
+    </div>
+    <form id="form-label" novalidate>
+      <div class="group" data-slot="all"></div>
+      <button class="submit" type="submit">Submit</button>
+      <div class="result" aria-live="polite"></div>
+    </form>
+  </section>
+</div>
+
+<script>
+  const FIELDS = [
+    { name: "fullName", label: "Full name", type: "text", req: true, auto: "name" },
+    { name: "email", label: "Email", type: "email", req: true, auto: "email" },
+    { name: "phone", label: "Phone", type: "tel", placeholder: "555-123-4567", auto: "tel" },
+    { name: "category", label: "Category", type: "select", req: true, options: ["General", "Support", "Feedback", "Other"] },
+    { name: "quantity", label: "Quantity", type: "number", hint: "1–100" },
+    { name: "website", label: "Website", type: "url", placeholder: "https://example.com" },
+    { name: "notes", label: "Notes", type: "textarea", hint: "Up to 500 characters" },
+    { name: "agree", label: "I agree to the terms", type: "checkbox", req: true, short: "Terms" }
+  ];
+
+  // Same rules as the original PoC. Optional fields only check format when filled in.
+  const RULES = {
+    fullName: v => !v.trim() ? "Full name is required." : v.trim().length < 2 ? "Enter at least 2 characters." : "",
+    email: v => !v.trim() ? "Email is required." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? "Enter a valid email address." : "",
+    phone: v => v.trim() && !/^\+?[\d\s().-]{7,20}$/.test(v.trim()) ? "Enter a valid phone number." : "",
+    category: v => !v ? "Please choose a category." : "",
+    quantity: v => {
+      if (v === "") return "";
+      const n = Number(v);
+      return !Number.isInteger(n) || n < 1 || n > 100 ? "Enter a whole number from 1 to 100." : "";
+    },
+    website: v => {
+      if (!v.trim()) return "";
+      try { return /^https?:$/.test(new URL(v.trim()).protocol) ? "" : "URL must start with http:// or https://."; }
+      catch { return "Enter a valid URL, e.g. https://example.com."; }
+    },
+    notes: v => v.length > 500 ? `Notes must be 500 characters or fewer (${v.length}).` : "",
+    agree: (_, el) => !el.checked ? "You must agree to continue." : ""
+  };
+
+  const CHECK_SVG = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 5.2 4.2 7.3 8 3" fill="none" stroke="var(--surface)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function buildField(prefix, f, opts = {}) {
+    const id = `${prefix}-${f.name}`;
+    const wrap = document.createElement("div");
+    wrap.className = f.req ? "field is-req" : "field is-opt";
+    let control;
+    if (f.type === "select") {
+      control = document.createElement("select");
+      control.innerHTML = `<option value="">Select one…</option>` + f.options.map(o => `<option>${o}</option>`).join("");
+    } else if (f.type === "textarea") {
+      control = document.createElement("textarea");
+    } else {
+      control = document.createElement("input");
+      control.type = f.type;
+      if (f.type === "number") control.inputMode = "numeric";
+    }
+    control.id = id;
+    control.name = f.name;
+    if (f.auto) control.autocomplete = f.auto;
+    let ph = f.placeholder || "";
+    if (opts.optionalPlaceholder && !f.req && f.type !== "checkbox") ph = ph ? `Optional, e.g. ${ph}` : "Optional";
+    if (ph && f.type !== "select") control.placeholder = ph;
+
+    const err = document.createElement("div");
+    err.className = "error";
+    err.id = `${id}-err`;
+    control.setAttribute("aria-describedby", err.id);
+
+    if (f.type === "checkbox") {
+      const row = document.createElement("div");
+      row.className = "check";
+      row.append(control);
+      row.insertAdjacentHTML("beforeend", `<label for="${id}">${f.label}</label>`);
+      wrap.append(row);
+    } else {
+      const head = document.createElement("div");
+      head.className = "label-row";
+      head.innerHTML = `<label for="${id}">${f.label}</label>` + (f.hint ? `<span class="hint">${f.hint}</span>` : "");
+      wrap.append(head, control);
+    }
+    if (f.req) control.setAttribute("aria-required", "true");
+    wrap.append(err);
+    return wrap;
+  }
+
+  // Shared validation wiring. Errors appear only after a field is touched;
+  // onChange gets the quiet live state on every keystroke.
+  function wire(form, fields, onChange, opts = {}) {
+    const touched = new Set();
+    const read = f => {
+      const el = form.elements[f.name];
+      const msg = RULES[f.name](el.value, el);
+      const filled = f.type === "checkbox" ? el.checked : el.value.trim() !== "";
+      return { f, el, msg, filled, ok: !msg };
+    };
+    const paint = s => {
+      const show = touched.has(s.f.name) ? s.msg : "";
+      s.el.closest(".field").classList.toggle("invalid", !!show);
+      s.el.closest(".field").querySelector(".error").textContent = show;
+      s.el.setAttribute("aria-invalid", show ? "true" : "false");
+    };
+    const refresh = () => {
+      const states = fields.map(read);
+      states.forEach(paint);
+      onChange(states, touched);
+      return states;
+    };
+    for (const f of fields) {
+      const el = form.elements[f.name];
+      el.addEventListener("input", refresh);
+      el.addEventListener("blur", () => { touched.add(f.name); refresh(); });
+      el.addEventListener("change", () => { touched.add(f.name); refresh(); });
+    }
+    const result = form.querySelector(".result");
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      fields.forEach(f => touched.add(f.name));
+      const states = refresh();
+      const bad = states.find(s => !s.ok);
+      result.textContent = "";
+      if (bad) {
+        const det = bad.el.closest("details");
+        if (det) det.open = true;
+        if (opts.reveal) opts.reveal(bad);
+        bad.el.focus();
+        return;
+      }
+      const data = {};
+      states.forEach(s => { data[s.f.name] = s.f.type === "checkbox" ? s.el.checked : s.el.value; });
+      result.textContent = "Submitted. Nothing was sent; this is a mockup.";
+      const pre = document.createElement("pre");
+      pre.textContent = JSON.stringify(data, null, 2);
+      result.append(pre);
+    });
+    const focusField = name => {
+      touched.add(name);
+      refresh();
+      form.elements[name].focus();
+    };
+    refresh();
+    return { focusField };
+  }
+
+  const reqFields = FIELDS.filter(f => f.req);
+  const optFields = FIELDS.filter(f => !f.req);
+
+  /* A: Split sections */
+  {
+    const form = document.getElementById("form-split");
+    const order = [...reqFields, ...optFields];
+    reqFields.forEach(f => form.querySelector('[data-slot="req"]').append(buildField("a", f)));
+    optFields.forEach(f => form.querySelector('[data-slot="opt"]').append(buildField("a", f)));
+    const count = form.querySelector("[data-count]");
+    const note = form.querySelector("[data-extras-note]");
+    wire(form, order, states => {
+      const done = states.filter(s => s.f.req && s.ok).length;
+      const all = done === reqFields.length;
+      count.textContent = all ? "All set" : `${done} of ${reqFields.length} done`;
+      count.classList.toggle("done", all);
+      const extras = states.filter(s => !s.f.req && s.filled).length;
+      note.textContent = extras ? `Optional · ${extras} of ${optFields.length} filled` : `Optional · ${optFields.length} fields`;
+    });
+  }
+
+  /* B: Countdown button */
+  {
+    const form = document.getElementById("form-countdown");
+    FIELDS.forEach(f => form.querySelector('[data-slot="all"]').append(buildField("b", f, { optionalPlaceholder: true })));
+    const meter = form.querySelector("[data-meter]");
+    meter.style.setProperty("--n", reqFields.length);
+    meter.innerHTML = reqFields.map(() => "<i></i>").join("");
+    const submit = form.querySelector("[data-submit]");
+    const needed = form.querySelector("[data-needed]");
+    let api;
+    api = wire(form, FIELDS, states => {
+      const req = states.filter(s => s.f.req);
+      const missing = req.filter(s => !s.ok);
+      [...meter.children].forEach((bar, i) => bar.classList.toggle("on", i < req.length - missing.length));
+      submit.classList.toggle("pending", missing.length > 0);
+      submit.textContent = missing.length === 0 ? "Submit"
+        : `${missing.length} required field${missing.length > 1 ? "s" : ""} left`;
+      needed.classList.toggle("done", missing.length === 0);
+      // Rebuild only when the missing set changes, so a blur doesn't swap a chip out mid-click.
+      const key = missing.map(s => s.f.name).join();
+      if (key === needed.dataset.key) return;
+      needed.dataset.key = key;
+      needed.replaceChildren();
+      if (missing.length === 0) {
+        needed.textContent = "Ready. Everything else is optional.";
+      } else {
+        needed.append("Still needed:");
+        missing.forEach(s => {
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "chip";
+          chip.textContent = s.f.short || s.f.label;
+          chip.addEventListener("click", () => api.focusField(s.f.name));
+          needed.append(chip);
+        });
+      }
+    });
+  }
+
+  /* C: Progress rail */
+  {
+    const form = document.getElementById("form-rail");
+    const rail = form.querySelector('[data-slot="all"]');
+    const dots = {};
+    FIELDS.forEach(f => {
+      const row = document.createElement("div");
+      row.className = "rail-row";
+      const dot = document.createElement("i");
+      dot.className = f.req ? "dot" : "dot opt";
+      dot.setAttribute("aria-hidden", "true");
+      if (f.req) dot.innerHTML = CHECK_SVG;
+      dots[f.name] = dot;
+      row.append(dot, buildField("c", f));
+      rail.append(row);
+    });
+    const milestone = form.querySelector("[data-milestone]");
+    wire(form, FIELDS, (states, touched) => {
+      states.forEach(s => {
+        const d = dots[s.f.name];
+        if (s.f.req) {
+          d.classList.toggle("done", s.ok);
+          d.classList.toggle("bad", !s.ok && touched.has(s.f.name));
+        } else {
+          d.classList.toggle("filled", s.filled && s.ok);
+        }
+      });
+      const left = states.filter(s => s.f.req && !s.ok).length;
+      milestone.classList.toggle("done", left === 0);
+      milestone.textContent = left === 0
+        ? "All required fields done. The rest is up to you."
+        : `${left} of ${reqFields.length} required fields to go`;
+    });
+  }
+
+  /* D: Visual weight */
+  {
+    const form = document.getElementById("form-weight");
+    FIELDS.forEach(f => form.querySelector('[data-slot="all"]').append(buildField("d", f)));
+    wire(form, FIELDS, states => {
+      states.forEach(s => s.el.closest(".field").classList.toggle("pending", s.f.req && !s.ok));
+    });
+  }
+
+  /* E: One at a time */
+  {
+    const form = document.getElementById("form-steps");
+    const host = form.querySelector('[data-slot="all"]');
+    const steps = FIELDS.map(f => { const w = buildField("e", f); w.hidden = true; host.append(w); return w; });
+    const bar = form.querySelector("[data-bar]");
+    bar.style.setProperty("--n", FIELDS.length);
+    bar.innerHTML = FIELDS.map(() => "<i></i>").join("");
+    const pos = form.querySelector("[data-pos]");
+    const tag = form.querySelector("[data-tag]");
+    const back = form.querySelector("[data-back]");
+    const skip = form.querySelector("[data-skip]");
+    const next = form.querySelector("[data-next]");
+    const skipped = new Set();
+    let at = 0;
+    let latest = [];
+    const api = wire(form, FIELDS, states => { latest = states; paintBar(); }, {
+      reveal: bad => show(FIELDS.indexOf(bad.f))
+    });
+    function paintBar() {
+      [...bar.children].forEach((seg, i) => {
+        const s = latest[i];
+        seg.className = i === at ? "current"
+          : s && s.filled && s.ok ? "answered"
+          : skipped.has(i) ? "skipped" : "";
+      });
+    }
+    function show(i, focus = true) {
+      at = i;
+      steps.forEach((w, j) => { w.hidden = j !== i; });
+      const f = FIELDS[i];
+      const last = i === FIELDS.length - 1;
+      pos.textContent = `Question ${i + 1} of ${FIELDS.length}`;
+      const reqLeft = latest.filter(s => s.f.req && !s.ok).length;
+      tag.classList.toggle("done", !f.req && reqLeft === 0);
+      tag.textContent = f.req ? "" : reqLeft === 0 ? "Optional. You could submit now." : "Optional";
+      back.hidden = i === 0;
+      skip.hidden = f.req;
+      next.textContent = last ? "Submit" : "Continue";
+      paintBar();
+      if (focus) form.elements[f.name].focus();
+    }
+    function advance() {
+      const f = FIELDS[at];
+      const s = latest[at];
+      if (!s.ok) { api.focusField(f.name); return; }
+      if (at === FIELDS.length - 1) { form.requestSubmit(); return; }
+      if (s.filled) skipped.delete(at); else skipped.add(at);
+      show(at + 1);
+    }
+    next.addEventListener("click", advance);
+    skip.addEventListener("click", () => {
+      const el = form.elements[FIELDS[at].name];
+      el.value = "";
+      el.dispatchEvent(new Event("input"));
+      skipped.add(at);
+      show(at + 1);
+    });
+    back.addEventListener("click", () => show(at - 1));
+    form.addEventListener("keydown", e => {
+      if (e.key === "Enter" && e.target.tagName !== "TEXTAREA" && e.target.tagName !== "BUTTON") {
+        e.preventDefault();
+        advance();
+      }
+    });
+    show(0, false);
+  }
+
+  /* F: Add-on chips */
+  {
+    const form = document.getElementById("form-addons");
+    const chips = form.querySelector("[data-chips]");
+    const addons = form.querySelector("[data-addons]");
+    const submit = form.querySelector("[data-submit]");
+    reqFields.filter(f => f.type !== "checkbox").forEach(f => form.querySelector('[data-slot="req"]').append(buildField("f", f)));
+    reqFields.filter(f => f.type === "checkbox").forEach(f => form.querySelector('[data-slot="last"]').append(buildField("f", f)));
+    optFields.forEach(f => {
+      const wrap = buildField("f", f);
+      wrap.hidden = true;
+      form.querySelector('[data-slot="opt"]').append(wrap);
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip";
+      chip.textContent = f.label;
+      chips.append(chip);
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "remove";
+      remove.textContent = "Remove";
+      remove.setAttribute("aria-label", `Remove ${f.label}`);
+      wrap.querySelector(".label-row").append(remove);
+      chip.addEventListener("click", () => {
+        wrap.hidden = false;
+        chip.hidden = true;
+        addons.hidden = [...chips.children].every(c => c.hidden);
+        form.elements[f.name].focus();
+      });
+      remove.addEventListener("click", () => {
+        const el = form.elements[f.name];
+        el.value = "";
+        el.dispatchEvent(new Event("input"));
+        wrap.hidden = true;
+        chip.hidden = false;
+        addons.hidden = false;
+        chip.focus();
+      });
+    });
+    wire(form, FIELDS, states => {
+      const left = states.filter(s => s.f.req && !s.ok).length;
+      submit.classList.toggle("muted", left > 0);
+      submit.title = left ? `${left} required field${left > 1 ? "s" : ""} still empty or invalid` : "";
+    });
+  }
+
+  /* G: Fill-in sentence */
+  {
+    const form = document.getElementById("form-sentence");
+    // A blank is an inline field: the control plus an error that hangs below it.
+    const blank = (f, ph, width) => {
+      const id = `g-${f.name}`;
+      const wrap = document.createElement("span");
+      wrap.className = `field blank ${f.req ? "is-req" : "is-opt"}`;
+      let c;
+      if (f.type === "select") {
+        c = document.createElement("select");
+        c.innerHTML = `<option value="">${ph}</option>` + f.options.map(o => `<option>${o}</option>`).join("");
+      } else {
+        c = document.createElement("input");
+        c.type = f.type === "textarea" ? "text" : f.type;
+        if (f.type === "number") c.inputMode = "numeric";
+        if (ph) c.placeholder = ph;
+        if (width) c.style.width = width;
+      }
+      c.id = id;
+      c.name = f.name;
+      if (f.type !== "checkbox") c.setAttribute("aria-label", f.label);
+      if (f.auto) c.autocomplete = f.auto;
+      if (f.req) c.setAttribute("aria-required", "true");
+      const err = document.createElement("span");
+      err.className = "error";
+      err.id = `${id}-err`;
+      c.setAttribute("aria-describedby", err.id);
+      wrap.append(c, err);
+      return wrap;
+    };
+    form.querySelectorAll("[data-blank]").forEach(slot => {
+      const f = FIELDS.find(x => x.name === slot.dataset.blank);
+      slot.replaceWith(blank(f, slot.dataset.ph || "", slot.dataset.w));
+    });
+    const status = form.querySelector("[data-status]");
+    wire(form, FIELDS, states => {
+      states.forEach(s => s.el.closest(".field").classList.toggle("ok", s.ok && s.filled));
+      const left = states.filter(s => s.f.req && !s.ok).length;
+      status.classList.toggle("done", left === 0);
+      status.textContent = left
+        ? `${left} blank${left > 1 ? "s" : ""} left above`
+        : "That's all we need. The P.S. is up to you.";
+    });
+  }
+
+  /* H: Live preview */
+  {
+    const form = document.getElementById("form-preview");
+    FIELDS.forEach(f => form.querySelector('[data-slot="all"]').append(buildField("h", f)));
+    const state = form.querySelector("[data-state]");
+    const reqList = form.querySelector("[data-req]");
+    const optList = form.querySelector("[data-opt]");
+    const value = s => s.f.type === "checkbox" ? "Agreed" : s.el.value.trim();
+    let api;
+    const item = s => {
+      const row = document.createElement("div");
+      const dt = document.createElement("dt");
+      dt.textContent = s.f.short || s.f.label;
+      const dd = document.createElement("dd");
+      if (s.ok) {
+        dd.textContent = value(s);
+      } else {
+        const gap = document.createElement("button");
+        gap.type = "button";
+        gap.className = s.filled ? "pv-gap fix" : "pv-gap";
+        gap.textContent = s.filled ? "Needs a fix" : "Needed";
+        gap.addEventListener("click", () => api.focusField(s.f.name));
+        dd.append(gap);
+      }
+      row.append(dt, dd);
+      return row;
+    };
+    api = wire(form, FIELDS, states => {
+      const missing = states.filter(s => s.f.req && !s.ok).length;
+      state.classList.toggle("done", missing === 0);
+      state.textContent = missing ? `${missing} missing` : "Ready to send";
+      reqList.replaceChildren(...states.filter(s => s.f.req).map(item));
+      const extras = states.filter(s => !s.f.req && s.filled);
+      if (extras.length) {
+        optList.replaceChildren(...extras.map(item));
+      } else {
+        const none = document.createElement("div");
+        none.className = "pv-none";
+        none.textContent = "None added. These are all optional.";
+        optList.replaceChildren(none);
+      }
+    });
+  }
+
+  /* I: Spotlight */
+  {
+    const form = document.getElementById("form-spot");
+    const submit = form.querySelector("[data-submit]");
+    const tags = {};
+    const notes = {};
+    FIELDS.forEach(f => {
+      const w = buildField("i", f);
+      const tag = document.createElement("span");
+      tag.className = "spot-tag";
+      tag.setAttribute("aria-hidden", "true");
+      tag.hidden = true;
+      w.querySelector("label").append(tag);
+      tags[f.name] = tag;
+      if (!f.req) {
+        const note = document.createElement("div");
+        note.className = "opt-note";
+        note.textContent = "Optional. Skip it if you like.";
+        note.hidden = true;
+        w.querySelector(".label-row").after(note);
+        notes[f.name] = note;
+      }
+      form.querySelector('[data-slot="all"]').append(w);
+    });
+    let latest = [];
+    // Spotlight the first required field that still needs an answer, other than the one
+    // being edited. If it sits before the focused field, it was skipped.
+    function spot() {
+      const active = document.activeElement;
+      const at = FIELDS.findIndex(f => form.elements[f.name] === active);
+      const target = latest.find((s, i) => s.f.req && !s.ok && i !== at);
+      latest.forEach((s, i) => {
+        const on = s === target;
+        s.el.closest(".field").classList.toggle("spot", on);
+        tags[s.f.name].hidden = !on;
+        if (on) tags[s.f.name].textContent = at > i ? "Skipped" : "Next";
+        if (notes[s.f.name]) notes[s.f.name].hidden = i !== at;
+      });
+      submit.classList.toggle("spot-ready", !latest.some(s => s.f.req && !s.ok));
+    }
+    wire(form, FIELDS, states => { latest = states; spot(); });
+    form.addEventListener("focusin", spot);
+    form.addEventListener("focusout", () => setTimeout(spot));
+  }
+
+  /* J: Glow on entry */
+  {
+    const form = document.getElementById("form-glow");
+    const submit = form.querySelector("[data-submit]");
+    FIELDS.forEach(f => form.querySelector('[data-slot="all"]').append(buildField("j", f)));
+    let latest = [];
+    wire(form, FIELDS, states => { latest = states; });
+    // Restart the animation even if it is still running from the last move.
+    const glow = (target, delay) => {
+      target.classList.remove("glow");
+      void target.offsetWidth;
+      target.style.animationDelay = `${delay}ms`;
+      target.classList.add("glow");
+    };
+    // Blur runs before focusin, so latest already reflects the field just left.
+    form.addEventListener("focusin", e => {
+      const entered = latest.find(s => s.el === e.target);
+      if (!entered) return;
+      form.querySelectorAll(".glow").forEach(g => g.classList.remove("glow"));
+      const remaining = latest.filter(s => s.f.req && !s.ok && s !== entered);
+      remaining.forEach((s, i) => glow(s.f.type === "checkbox" ? s.el.closest(".check") : s.el, i * 70));
+      if (!latest.some(s => s.f.req && !s.ok)) glow(submit, 0);
+    });
+    form.addEventListener("animationend", e => {
+      if (e.animationName.startsWith("glow")) e.target.classList.remove("glow");
+    });
+  }
+
+  /* K: Label on entry */
+  {
+    const form = document.getElementById("form-label");
+    const suffixes = {};
+    FIELDS.forEach(f => {
+      const w = buildField("k", f);
+      if (!f.req) {
+        // The visible word is decoration; screen readers get a permanent hidden one,
+        // so the accessible name doesn't change while the field has focus.
+        const label = w.querySelector("label");
+        const suffix = document.createElement("span");
+        suffix.className = "opt-suffix";
+        suffix.setAttribute("aria-hidden", "true");
+        suffix.textContent = "(optional)";
+        const sr = document.createElement("span");
+        sr.className = "sr-only";
+        sr.textContent = " (optional)";
+        label.append(suffix, sr);
+        suffixes[f.name] = suffix;
+      }
+      form.querySelector('[data-slot="all"]').append(w);
+    });
+    wire(form, FIELDS, () => {});
+    form.addEventListener("focusin", e => suffixes[e.target.name]?.classList.add("on"));
+    form.addEventListener("focusout", e => suffixes[e.target.name]?.classList.remove("on"));
+  }
+
+  // Keep focus where it is on mouse-down for small helper buttons. Otherwise the field's
+  // blur shows an error, the layout shifts, and the click lands somewhere else.
+  document.addEventListener("mousedown", e => {
+    if (e.target.closest(".chip, .remove, .ghost, .tab, .pv-gap")) e.preventDefault();
+  });
+
+  /* Tabs, with #split / #countdown / #rail / #weight / #steps / #addons / #sentence / #preview / #spotlight / #glow / #label links */
+  const tabs = [...document.querySelectorAll(".tab")];
+  function select(id, focus) {
+    tabs.forEach(t => {
+      const on = t.getAttribute("aria-controls") === id;
+      t.setAttribute("aria-selected", on);
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+      if (on && focus) t.focus();
+    });
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => select(t.getAttribute("aria-controls")));
+    t.addEventListener("keydown", e => {
+      const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (step) select(tabs[(i + step + tabs.length) % tabs.length].getAttribute("aria-controls"), true);
+    });
+  });
+  const start = location.hash.slice(1);
+  select(tabs.some(t => t.getAttribute("aria-controls") === start) ? start : "split");
+</script>
+</body>
+</html>

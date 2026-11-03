@@ -1,0 +1,8 @@
+# Site output assembled by the Pages workflow
+_site/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

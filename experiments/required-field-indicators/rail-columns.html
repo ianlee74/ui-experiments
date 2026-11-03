@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Progress Rail Columns</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f5bd3'/%3E%3Ccircle cx='11' cy='16' r='4' fill='none' stroke='white' stroke-width='2.5'/%3E%3Ccircle cx='22' cy='16' r='2.5' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+  /* Layout: tabbed variants; each tab has a short note above a live multi-column form. */
+  :root {
+    --bg: #f3f4f7;
+    --surface: #ffffff;
+    --fg: #1b2130;
+    --muted: #5e6779;
+    --line: #d3d8e2;
+    --accent: #2f5bd3;
+    --on-accent: #ffffff;
+    --accent-soft: #e6ecfb;
+    --ok: #23804a;
+    --ok-soft: #e3f3e9;
+    --error: #c0362c;
+    --font: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151b;
+      --surface: #1b2029;
+      --fg: #e5e8ee;
+      --muted: #98a1b1;
+      --line: #343b48;
+      --accent: #7f9dff;
+      --on-accent: #0e1424;
+      --accent-soft: #232c45;
+      --ok: #5cc488;
+      --ok-soft: #1a3226;
+      --error: #ff7a6e;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151b;
+    --surface: #1b2029;
+    --fg: #e5e8ee;
+    --muted: #98a1b1;
+    --line: #343b48;
+    --accent: #7f9dff;
+    --on-accent: #0e1424;
+    --accent-soft: #232c45;
+    --ok: #5cc488;
+    --ok-soft: #1a3226;
+    --error: #ff7a6e;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.5 var(--font);
+    padding-block: 32px 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 24px; }
+  .crumbs { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
+  .crumbs a { color: var(--accent); text-underline-offset: 2px; }
+  header h1 { margin: 0; font-size: 26px; font-weight: 700; text-wrap: balance; }
+  header p { margin: 6px 0 0; color: var(--muted); max-width: 68ch; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tab {
+    font: inherit; font-weight: 600; color: var(--muted);
+    background: transparent; border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px 14px; cursor: pointer;
+  }
+  .tab[aria-selected="true"] { color: var(--on-accent); background: var(--accent); border-color: var(--accent); }
+  .seg { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; }
+  .seg span { color: var(--muted); padding: 0 8px 0 10px; }
+  .seg button {
+    font: inherit; font-weight: 600; color: var(--muted); background: transparent;
+    border: 0; border-radius: 999px; padding: 5px 12px; cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); }
+  .tab:focus-visible, .seg button:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .panel { display: grid; gap: 20px; }
+  .note h2 { margin: 0 0 6px; font-size: 19px; }
+  .note > p { margin: 0; color: var(--muted); max-width: 72ch; }
+  .facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 32px; margin-top: 14px; }
+  @media (max-width: 640px) { .facts { grid-template-columns: minmax(0, 1fr); } }
+  .facts h3 { margin: 0 0 6px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .facts ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+
+  form {
+    container-type: inline-size;
+    width: 100%;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: clamp(18px, 4vw, 28px); display: grid; gap: 20px; min-width: 0;
+  }
+  .wrap[data-w="narrow"] form { max-width: 390px; margin-inline: auto; }
+
+  .field { display: grid; gap: 6px; min-width: 0; }
+  .label-row { display: flex; gap: 12px; align-items: baseline; }
+  .label-row label { margin-right: auto; font-weight: 600; }
+  .hint { color: var(--muted); font-size: 13px; }
+  input:not([type="checkbox"]), select, textarea {
+    width: 100%; padding: 9px 11px; font: inherit; color: inherit;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+  }
+  input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
+  textarea { min-height: 84px; resize: vertical; }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+  .field.invalid input:not([type="checkbox"]), .field.invalid select, .field.invalid textarea { border-color: var(--error); }
+  .error { color: var(--error); font-size: 13px; }
+  .error:empty { display: none; }
+  .check { display: flex; gap: 8px; align-items: flex-start; }
+  .check input { margin-top: 4px; accent-color: var(--accent); }
+
+  .submit {
+    font: inherit; font-weight: 600; padding: 11px; border-radius: 6px; cursor: pointer;
+    color: var(--on-accent); background: var(--accent); border: 1px solid var(--accent);
+  }
+  .result { font-size: 14px; color: var(--ok); }
+  .result:empty { display: none; }
+  .result pre { margin: 8px 0 0; padding: 10px; color: var(--fg); background: var(--bg); border-radius: 6px; overflow-x: auto; font-size: 12px; }
+  .milestone { font-size: 13px; color: var(--muted); background: var(--bg); border-radius: 6px; padding: 6px 10px; }
+  .milestone.done { color: var(--ok); background: var(--ok-soft); font-weight: 600; }
+  .count { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .count.done { color: var(--ok); font-weight: 600; }
+
+  /* Field marks, same as concept C: ring = needed, dot = optional */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); align-items: center; }
+  .legend span { display: inline-flex; gap: 6px; align-items: center; }
+  .mark { display: grid; place-items: center; flex: none; border-radius: 50%; transition: background .2s, border-color .2s; }
+  .mark.req { width: 16px; height: 16px; border: 2px solid var(--accent); background: var(--surface); }
+  .mark.opt { width: 8px; height: 8px; background: var(--line); }
+  .mark svg { width: 10px; height: 10px; opacity: 0; transition: opacity .2s; }
+  .mark.req.done { background: var(--ok); border-color: var(--ok); }
+  .mark.req.done svg { opacity: 1; }
+  .mark.req.bad { border-color: var(--error); }
+  .mark.opt.filled { background: var(--muted); }
+
+  /* ---------- 1: Row glyphs ---------- */
+  .rows { --g: 52px; --gap: 12px; position: relative; display: grid; gap: 18px; }
+  .rows::before {
+    content: ""; position: absolute; top: 12px; bottom: 12px; width: 2px; background: var(--line);
+    left: calc(var(--g) / 2 - 1px);
+  }
+  .row { display: grid; grid-template-columns: var(--g) minmax(0, 1fr); gap: var(--gap); align-items: start; }
+  .glyph {
+    position: relative; justify-self: center; margin-top: 1px;
+    display: grid; grid-template-columns: repeat(var(--cols), 10px); gap: 4px; align-items: center;
+    padding: 4px 5px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
+    transition: border-color .2s;
+  }
+  .glyph.done { border-color: var(--ok); }
+  .cell { place-self: center; border-radius: 50%; transition: background .2s, border-color .2s; }
+  .cell.req { width: 10px; height: 10px; border: 2px solid var(--accent); background: var(--surface); }
+  .cell.req.done { background: var(--ok); border-color: var(--ok); }
+  .cell.req.bad { border-color: var(--error); }
+  .cell.opt { width: 6px; height: 6px; background: var(--line); }
+  .cell.opt.filled { background: var(--muted); }
+  .row-fields { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: 16px 18px; align-items: start; }
+  .row-fields .field { position: relative; }
+  .row-fields .fmark {
+    display: none; position: absolute; top: 3px;
+    left: calc(var(--g) / -2 - var(--gap)); transform: translateX(-50%);
+  }
+  .row-fields .fmark.opt { top: 7px; }
+  @container (max-width: 560px) {
+    .row-fields { grid-template-columns: minmax(0, 1fr); }
+    .glyph { visibility: hidden; }
+    .row-fields .fmark { display: grid; }
+  }
+
+  /* ---------- 2: Rail per column ---------- */
+  .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 36px; }
+  @container (max-width: 560px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+  .col { display: grid; gap: 14px; align-content: start; min-width: 0; }
+  .col-head, .sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .col-head h3, .sec-head h3 { margin: 0; font-size: 16px; }
+  .vrail { position: relative; display: grid; gap: 18px; }
+  .vrail::before { content: ""; position: absolute; left: 10px; top: 10px; bottom: 10px; width: 2px; background: var(--line); }
+  .vrow { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; align-items: start; }
+  .vrow .mark { position: relative; justify-self: center; margin-top: 3px; }
+  .vrow .mark.opt { margin-top: 7px; }
+
+  /* ---------- 3: Section rail ---------- */
+  .secs { position: relative; display: grid; gap: 26px; }
+  .secs::before { content: ""; position: absolute; left: 13px; top: 14px; bottom: 14px; width: 2px; background: var(--line); }
+  .sec { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; align-items: start; }
+  .prog {
+    --p: 0; position: relative; width: 28px; height: 28px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: conic-gradient(var(--ok) calc(var(--p) * 1turn), color-mix(in srgb, var(--accent) 35%, var(--line)) 0);
+  }
+  .prog::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: var(--surface); }
+  .prog svg { position: relative; z-index: 1; width: 13px; height: 13px; opacity: 0; transition: opacity .2s; }
+  .prog.done { background: var(--ok); }
+  .prog.done::after { display: none; }
+  .prog.done svg { opacity: 1; }
+  .sec-body { display: grid; gap: 14px; min-width: 0; }
+  .sec-head { min-height: 28px; align-items: center; }
+  .sec-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 18px; align-items: start; }
+  .sec-grid .span { grid-column: 1 / -1; }
+  @container (max-width: 560px) { .sec-grid { grid-template-columns: minmax(0, 1fr); } }
+  .tick { display: inline-block; border-radius: 50%; transition: background .2s, border-color .2s; }
+  .tick.req { width: 10px; height: 10px; margin-right: 7px; border: 2px solid var(--accent); }
+  .tick.req.done { background: var(--ok); border-color: var(--ok); }
+  .tick.req.bad { border-color: var(--error); }
+  .tick.opt { width: 6px; height: 6px; margin: 0 9px 2px 2px; background: var(--line); vertical-align: middle; }
+  .tick.opt.filled { background: var(--muted); }
+  .check .tick { flex: none; margin-top: 6px; margin-right: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap" data-w="wide">
+  <header>
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="../../">UI Experiments</a> / <a href="./">Required-field indicators</a> / Rail in columns</nav>
+    <h1>Progress rail in columns</h1>
+    <p>Concept C puts one mark on the rail per field, which only works when every field has its own row. In a grid, fields share rows, so each mark on the rail has to stand for something else. These are three choices for what it stands for. Use the Phone switch to see how each one collapses.</p>
+  </header>
+
+  <div class="toolbar">
+    <div class="tabs" role="tablist" aria-label="Variants">
+      <button class="tab" role="tab" id="tab-glyphs" aria-controls="glyphs" aria-selected="true">1 · Row glyphs</button>
+      <button class="tab" role="tab" id="tab-columns" aria-controls="columns" aria-selected="false">2 · Rail per column</button>
+      <button class="tab" role="tab" id="tab-sections" aria-controls="sections" aria-selected="false">3 · Section rail</button>
+    </div>
+    <div class="seg" role="group" aria-label="Preview width">
+      <span>Preview</span>
+      <button type="button" data-w="wide" aria-pressed="true">Desktop</button>
+      <button type="button" data-w="narrow" aria-pressed="false">Phone</button>
+    </div>
+  </div>
+
+  <section class="panel" id="glyphs" role="tabpanel" aria-labelledby="tab-glyphs">
+    <div class="note">
+      <h2>Row glyphs</h2>
+      <p>Each mark on the rail stands for a row. It's a small pill with one mark per column, in the same order as the fields, so the left mark is the left field. Rings fill as their field becomes valid, small dots are optional fields, and the pill outline turns green when everything required in that row is done.</p>
+      <div class="facts">
+        <div>
+          <h3>On a phone</h3>
+          <ul>
+            <li>The grid stacks to one column and each pill splits back into one ring per field, which is concept C unchanged</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Trade-offs</h3>
+          <ul>
+            <li>Closest to the original rail and still says which field in a row is missing</li>
+            <li>Marks get small; past three columns per row they're hard to read</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <form id="form-glyph" novalidate>
+      <div class="legend">
+        <span><i class="mark req" aria-hidden="true"></i> Needed</span>
+        <span><i class="mark opt" aria-hidden="true"></i> Optional</span>
+      </div>
+      <div class="rows" data-slot></div>
+      <div class="milestone" data-milestone aria-live="polite"></div>
+      <button class="submit" type="submit">Submit</button>
+      <div class="result" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section class="panel" id="columns" role="tabpanel" aria-labelledby="tab-columns" hidden>
+    <div class="note">
+      <h2>Rail per column</h2>
+      <p>Each column is its own group with its own rail and its own count. This fits when the columns mean something, like "About you" beside "Your request", and people finish one before starting the other.</p>
+      <div class="facts">
+        <div>
+          <h3>On a phone</h3>
+          <ul>
+            <li>The columns stack into two short rails, one after the other; nothing else changes</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Trade-offs</h3>
+          <ul>
+            <li>Wrong for paired fields like First | Last, where people read across, not down</li>
+            <li>Tab order runs down the left column first, so the layout has to read that way too</li>
+            <li>Two rails side by side is busier</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <form id="form-cols" novalidate>
+      <div class="legend">
+        <span><i class="mark req" aria-hidden="true"></i> Needed</span>
+        <span><i class="mark opt" aria-hidden="true"></i> Optional</span>
+      </div>
+      <div class="cols" data-slot></div>
+      <div data-after></div>
+      <div class="milestone" data-milestone aria-live="polite"></div>
+      <button class="submit" type="submit">Submit</button>
+      <div class="result" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section class="panel" id="sections" role="tabpanel" aria-labelledby="tab-sections" hidden>
+    <div class="note">
+      <h2>Section rail</h2>
+      <p>The rail moves up a level, with one mark per section. Each mark is a progress ring that fills as that section's required fields are done. Inside a section the fields can sit in any grid, and a small ring or dot before each label says which ones are needed.</p>
+      <div class="facts">
+        <div>
+          <h3>On a phone</h3>
+          <ul>
+            <li>Section grids stack to one column; the rail and its rings don't change</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Trade-offs</h3>
+          <ul>
+            <li>Scales to long forms and any grid, including three or four columns</li>
+            <li>Needs real sections; a one-section form gains nothing</li>
+            <li>Two kinds of marks to learn: rings for sections, small marks for fields</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <form id="form-secs" novalidate>
+      <div class="legend">
+        <span><i class="mark req" aria-hidden="true"></i> Needed</span>
+        <span><i class="mark opt" aria-hidden="true"></i> Optional</span>
+      </div>
+      <div class="secs" data-slot></div>
+      <div class="milestone" data-milestone aria-live="polite"></div>
+      <button class="submit" type="submit">Submit</button>
+      <div class="result" aria-live="polite"></div>
+    </form>
+  </section>
+</div>
+
+<script>
+  const FIELDS = [
+    { name: "fullName", label: "Full name", type: "text", req: true, auto: "name" },
+    { name: "email", label: "Email", type: "email", req: true, auto: "email" },
+    { name: "phone", label: "Phone", type: "tel", placeholder: "555-123-4567", auto: "tel" },
+    { name: "category", label: "Category", type: "select", req: true, options: ["General", "Support", "Feedback", "Other"] },
+    { name: "quantity", label: "Quantity", type: "number", hint: "1–100" },
+    { name: "website", label: "Website", type: "url", placeholder: "https://example.com" },
+    { name: "notes", label: "Notes", type: "textarea", hint: "Up to 500 characters" },
+    { name: "agree", label: "I agree to the terms", type: "checkbox", req: true }
+  ];
+  const F = Object.fromEntries(FIELDS.map(f => [f.name, f]));
+  const REQ_COUNT = FIELDS.filter(f => f.req).length;
+
+  // Same rules as the original PoC. Optional fields only check format when filled in.
+  const RULES = {
+    fullName: v => !v.trim() ? "Full name is required." : v.trim().length < 2 ? "Enter at least 2 characters." : "",
+    email: v => !v.trim() ? "Email is required." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? "Enter a valid email address." : "",
+    phone: v => v.trim() && !/^\+?[\d\s().-]{7,20}$/.test(v.trim()) ? "Enter a valid phone number." : "",
+    category: v => !v ? "Please choose a category." : "",
+    quantity: v => {
+      if (v === "") return "";
+      const n = Number(v);
+      return !Number.isInteger(n) || n < 1 || n > 100 ? "Enter a whole number from 1 to 100." : "";
+    },
+    website: v => {
+      if (!v.trim()) return "";
+      try { return /^https?:$/.test(new URL(v.trim()).protocol) ? "" : "URL must start with http:// or https://."; }
+      catch { return "Enter a valid URL, e.g. https://example.com."; }
+    },
+    notes: v => v.length > 500 ? `Notes must be 500 characters or fewer (${v.length}).` : "",
+    agree: (_, el) => !el.checked ? "You must agree to continue." : ""
+  };
+
+  const CHECK_SVG = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 5.2 4.2 7.3 8 3" fill="none" stroke="var(--surface)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  const el = (tag, cls) => { const e = document.createElement(tag); if (cls) e.className = cls; return e; };
+
+  function buildField(prefix, f) {
+    const id = `${prefix}-${f.name}`;
+    const wrap = el("div", "field");
+    let control;
+    if (f.type === "select") {
+      control = el("select");
+      control.innerHTML = `<option value="">Select one…</option>` + f.options.map(o => `<option>${o}</option>`).join("");
+    } else if (f.type === "textarea") {
+      control = el("textarea");
+    } else {
+      control = el("input");
+      control.type = f.type;
+      if (f.type === "number") control.inputMode = "numeric";
+    }
+    control.id = id;
+    control.name = f.name;
+    if (f.auto) control.autocomplete = f.auto;
+    if (f.placeholder) control.placeholder = f.placeholder;
+    if (f.req) control.setAttribute("aria-required", "true");
+    const err = el("div", "error");
+    err.id = `${id}-err`;
+    control.setAttribute("aria-describedby", err.id);
+    if (f.type === "checkbox") {
+      const row = el("div", "check");
+      row.append(control);
+      row.insertAdjacentHTML("beforeend", `<label for="${id}">${f.label}</label>`);
+      wrap.append(row);
+    } else {
+      const head = el("div", "label-row");
+      head.innerHTML = `<label for="${id}">${f.label}</label>` + (f.hint ? `<span class="hint">${f.hint}</span>` : "");
+      wrap.append(head, control);
+    }
+    wrap.append(err);
+    return wrap;
+  }
+
+  // Shared validation wiring. Errors appear only after a field is touched;
+  // onChange gets the quiet live state on every keystroke.
+  function wire(form, fields, onChange) {
+    const touched = new Set();
+    const read = f => {
+      const el = form.elements[f.name];
+      const msg = RULES[f.name](el.value, el);
+      const filled = f.type === "checkbox" ? el.checked : el.value.trim() !== "";
+      return { f, el, msg, filled, ok: !msg };
+    };
+    const paintField = s => {
+      const show = touched.has(s.f.name) ? s.msg : "";
+      s.el.closest(".field").classList.toggle("invalid", !!show);
+      s.el.closest(".field").querySelector(".error").textContent = show;
+      s.el.setAttribute("aria-invalid", show ? "true" : "false");
+    };
+    const refresh = () => {
+      const states = fields.map(read);
+      states.forEach(paintField);
+      onChange(states, touched);
+      return states;
+    };
+    for (const f of fields) {
+      const el = form.elements[f.name];
+      el.addEventListener("input", refresh);
+      el.addEventListener("blur", () => { touched.add(f.name); refresh(); });
+      el.addEventListener("change", () => { touched.add(f.name); refresh(); });
+    }
+    const result = form.querySelector(".result");
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      fields.forEach(f => touched.add(f.name));
+      const states = refresh();
+      const bad = states.find(s => !s.ok);
+      result.textContent = "";
+      if (bad) { bad.el.focus(); return; }
+      const data = {};
+      states.forEach(s => { data[s.f.name] = s.f.type === "checkbox" ? s.el.checked : s.el.value; });
+      result.textContent = "Submitted. Nothing was sent; this is a mockup.";
+      const pre = el("pre");
+      pre.textContent = JSON.stringify(data, null, 2);
+      result.append(pre);
+    });
+    refresh();
+  }
+
+  function mark(f, extra = "") {
+    const m = el("i", `mark ${f.req ? "req" : "opt"} ${extra}`.trim());
+    m.setAttribute("aria-hidden", "true");
+    if (f.req) m.innerHTML = CHECK_SVG;
+    return m;
+  }
+  function paint(m, s, touched) {
+    if (s.f.req) {
+      m.classList.toggle("done", s.ok);
+      m.classList.toggle("bad", !s.ok && touched.has(s.f.name));
+    } else {
+      m.classList.toggle("filled", s.filled && s.ok);
+    }
+  }
+  function paintMilestone(form, states) {
+    const ms = form.querySelector("[data-milestone]");
+    const left = states.filter(s => s.f.req && !s.ok).length;
+    ms.classList.toggle("done", left === 0);
+    ms.textContent = left === 0
+      ? "All required fields done. The rest is up to you."
+      : `${left} of ${REQ_COUNT} required fields to go`;
+  }
+  const byName = states => Object.fromEntries(states.map(s => [s.f.name, s]));
+
+  /* 1: Row glyphs */
+  {
+    const ROWS = [["fullName", "email"], ["phone", "category", "quantity"], ["website"], ["notes"], ["agree"]];
+    const form = document.getElementById("form-glyph");
+    const host = form.querySelector("[data-slot]");
+    const marks = {};
+    const glyphs = [];
+    ROWS.forEach(names => {
+      const row = el("div", "row");
+      const glyph = el("div", "glyph");
+      glyph.setAttribute("aria-hidden", "true");
+      glyph.style.setProperty("--cols", names.length);
+      const fieldsRow = el("div", "row-fields");
+      fieldsRow.style.setProperty("--cols", names.length);
+      names.forEach(n => {
+        const f = F[n];
+        const cell = el("i", `cell ${f.req ? "req" : "opt"}`);
+        glyph.append(cell);
+        const fw = buildField("g", f);
+        const fm = mark(f, "fmark");
+        fw.prepend(fm);
+        fieldsRow.append(fw);
+        marks[n] = [cell, fm];
+      });
+      glyphs.push([glyph, names]);
+      row.append(glyph, fieldsRow);
+      host.append(row);
+    });
+    wire(form, ROWS.flat().map(n => F[n]), (states, touched) => {
+      const by = byName(states);
+      states.forEach(s => marks[s.f.name].forEach(m => paint(m, s, touched)));
+      glyphs.forEach(([g, names]) => {
+        const req = names.filter(n => F[n].req);
+        g.classList.toggle("done", req.length > 0 && req.every(n => by[n].ok));
+      });
+      paintMilestone(form, states);
+    });
+  }
+
+  /* 2: Rail per column */
+  {
+    const COLS = [
+      { title: "About you", names: ["fullName", "email", "phone"] },
+      { title: "Your request", names: ["category", "quantity", "website", "notes"] }
+    ];
+    const form = document.getElementById("form-cols");
+    const host = form.querySelector("[data-slot]");
+    const marks = {};
+    const counts = [];
+    const vrail = names => {
+      const r = el("div", "vrail");
+      names.forEach(n => {
+        const row = el("div", "vrow");
+        marks[n] = mark(F[n]);
+        row.append(marks[n], buildField("k", F[n]));
+        r.append(row);
+      });
+      return r;
+    };
+    COLS.forEach((c, i) => {
+      const col = el("div", "col");
+      col.setAttribute("role", "group");
+      col.setAttribute("aria-labelledby", `col-h-${i}`);
+      const head = el("div", "col-head");
+      head.innerHTML = `<h3 id="col-h-${i}">${c.title}</h3>`;
+      const count = el("span", "count");
+      head.append(count);
+      col.append(head, vrail(c.names));
+      host.append(col);
+      counts.push([count, c.names]);
+    });
+    form.querySelector("[data-after]").append(vrail(["agree"]));
+    const order = [...COLS.flatMap(c => c.names), "agree"].map(n => F[n]);
+    wire(form, order, (states, touched) => {
+      const by = byName(states);
+      states.forEach(s => paint(marks[s.f.name], s, touched));
+      counts.forEach(([count, names]) => {
+        const req = names.filter(n => F[n].req);
+        const done = req.filter(n => by[n].ok).length;
+        count.textContent = done === req.length ? "All set" : `${done} of ${req.length} done`;
+        count.classList.toggle("done", done === req.length);
+      });
+      paintMilestone(form, states);
+    });
+  }
+
+  /* 3: Section rail */
+  {
+    const SECS = [
+      { title: "About you", names: ["fullName", "email", "phone", "website"] },
+      { title: "Your request", names: ["category", "quantity", "notes"] },
+      { title: "Confirm", names: ["agree"] }
+    ];
+    const WIDE = new Set(["notes", "agree"]);
+    const form = document.getElementById("form-secs");
+    const host = form.querySelector("[data-slot]");
+    const ticks = {};
+    const secs = [];
+    SECS.forEach((sec, i) => {
+      const row = el("div", "sec");
+      row.setAttribute("role", "group");
+      row.setAttribute("aria-labelledby", `sec-h-${i}`);
+      const prog = el("div", "prog");
+      prog.setAttribute("aria-hidden", "true");
+      prog.innerHTML = CHECK_SVG;
+      const body = el("div", "sec-body");
+      const head = el("div", "sec-head");
+      head.innerHTML = `<h3 id="sec-h-${i}">${sec.title}</h3>`;
+      const count = el("span", "count");
+      head.append(count);
+      const grid = el("div", "sec-grid");
+      sec.names.forEach(n => {
+        const f = F[n];
+        const fw = buildField("s", f);
+        if (WIDE.has(n)) fw.classList.add("span");
+        const t = el("i", `tick ${f.req ? "req" : "opt"}`);
+        t.setAttribute("aria-hidden", "true");
+        (fw.querySelector(".label-row label") || fw.querySelector(".check")).prepend(t);
+        ticks[n] = t;
+        grid.append(fw);
+      });
+      body.append(head, grid);
+      row.append(prog, body);
+      host.append(row);
+      secs.push([prog, count, sec.names]);
+    });
+    wire(form, SECS.flatMap(s => s.names).map(n => F[n]), (states, touched) => {
+      const by = byName(states);
+      states.forEach(s => paint(ticks[s.f.name], s, touched));
+      secs.forEach(([prog, count, names]) => {
+        const req = names.filter(n => F[n].req);
+        const done = req.filter(n => by[n].ok).length;
+        prog.style.setProperty("--p", done / req.length);
+        prog.classList.toggle("done", done === req.length);
+        count.textContent = done === req.length ? "Done" : `${done} of ${req.length} needed`;
+        count.classList.toggle("done", done === req.length);
+      });
+      paintMilestone(form, states);
+    });
+  }
+
+  // Keep focus where it is on mouse-down for small helper buttons. Otherwise the field's
+  // blur shows an error, the layout shifts, and the click lands somewhere else.
+  document.addEventListener("mousedown", e => {
+    if (e.target.closest(".tab, .seg button")) e.preventDefault();
+  });
+
+  /* Preview width */
+  const wrap = document.querySelector(".wrap");
+  const segs = [...document.querySelectorAll(".seg button")];
+  segs.forEach(b => b.addEventListener("click", () => {
+    wrap.dataset.w = b.dataset.w;
+    segs.forEach(x => x.setAttribute("aria-pressed", x === b));
+  }));
+
+  /* Tabs, with #glyphs / #columns / #sections links */
+  const tabs = [...document.querySelectorAll(".tab")];
+  function select(id, focus) {
+    tabs.forEach(t => {
+      const on = t.getAttribute("aria-controls") === id;
+      t.setAttribute("aria-selected", on);
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+      if (on && focus) t.focus();
+    });
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => select(t.getAttribute("aria-controls")));
+    t.addEventListener("keydown", e => {
+      const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (step) select(tabs[(i + step + tabs.length) % tabs.length].getAttribute("aria-controls"), true);
+    });
+  });
+  const start = location.hash.slice(1);
+  select(tabs.some(t => t.getAttribute("aria-controls") === start) ? start : "glyphs");
+</script>
+</body>
+</html>
