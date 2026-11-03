@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Baseline Form</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f5bd3'/%3E%3Ccircle cx='11' cy='16' r='4' fill='none' stroke='white' stroke-width='2.5'/%3E%3Ccircle cx='22' cy='16' r='2.5' fill='white'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --surface: #ffffff;
+      --text: #1d2330;
+      --muted: #5f6878;
+      --border: #c9ced8;
+      --focus: #2f6fed;
+      --error: #c62828;
+      --ok: #2e7d32;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #14171c;
+        --surface: #1e232b;
+        --text: #e6e9ef;
+        --muted: #9aa3b2;
+        --border: #3a414d;
+        --focus: #6d9bff;
+        --error: #ff6b6b;
+        --ok: #66bb6a;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 32px 16px;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    .crumbs { max-width: 520px; margin: 0 auto 12px; font-size: 13px; color: var(--muted); }
+    .crumbs a { color: var(--focus); text-underline-offset: 2px; }
+    form {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    .hint { margin: 0 0 24px; color: var(--muted); font-size: 13px; }
+    .field { margin-bottom: 18px; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .req { color: var(--error); margin-left: 2px; }
+    .opt { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 6px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 11px;
+      font: inherit;
+      color: inherit;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--focus);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 25%, transparent);
+    }
+    .field.invalid input, .field.invalid select, .field.invalid textarea { border-color: var(--error); }
+    .error { min-height: 18px; margin-top: 4px; color: var(--error); font-size: 13px; }
+    .checkbox { display: flex; gap: 8px; align-items: flex-start; }
+    .checkbox input { width: auto; margin-top: 4px; }
+    .checkbox label { font-weight: 400; margin: 0; }
+    .counter { float: right; color: var(--muted); font-size: 12px; font-weight: 400; }
+    button {
+      width: 100%;
+      padding: 11px;
+      font: inherit;
+      font-weight: 600;
+      color: #fff;
+      background: var(--focus);
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(1.08); }
+    #result { margin-top: 16px; font-size: 14px; }
+    #result.ok { color: var(--ok); }
+    #result pre {
+      margin: 8px 0 0;
+      padding: 10px;
+      color: var(--text);
+      background: var(--bg);
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../../">UI Experiments</a> / <a href="./">Required-field indicators</a> / Baseline form</nav>
+  <form id="poc-form" novalidate>
+    <h1>Sample Form</h1>
+    <p class="hint">Fields marked <span class="req">*</span> are required.</p>
+
+    <div class="field">
+      <label for="fullName">Full name<span class="req">*</span></label>
+      <input id="fullName" name="fullName" type="text" autocomplete="name">
+      <div class="error" aria-live="polite"></div>
+    </div>
+
+    <div class="field">
+      <label for="email">Email<span class="req">*</span></label>
+      <input id="email" name="email" type="email" autocomplete="email">
+      <div class="error" aria-live="polite"></div>
+    </div>
+
+    <div class="field">
+      <label for="phone">Phone<span class="opt">optional</span></label>
+      <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="555-123-4567">
+      <div class="error" aria-live="polite"></div>
+    </div>
+
+    <div class="field">
+      <label for="category">Category<span class="req">*</span></label>
+      <select id="category" name="category">
+        <option value="">Select one…</option>
+        <option>General</option>
+        <option>Support</option>
+        <option>Feedback</option>
+        <option>Other</option>
+      </select>
+      <div class="error" aria-live="polite"></div>
+    </div>
+
+    <div class="field">
+      <label for="quantity">Quantity<span class="opt">optional, 1–100</span></label>
+      <input id="quantity" name="quantity" type="number" inputmode="numeric">
+      <div class="error" aria-live="polite"></div>
+    </div>
+
+    <div class="field">
+      <label for="website">Website<span class="opt">optional</span></label>
+      <input id="website" name="website" type="url" placeholder="https://example.com">
+      <div class="error" aria-live="polite"></div>
+    </div>
+
+    <div class="field">
+      <label for="notes">Notes<span class="opt">optional</span><span class="counter" id="notesCounter">0 / 500</span></label>
+      <textarea id="notes" name="notes"></textarea>
+      <div class="error" aria-live="polite"></div>
+    </div>
+
+    <div class="field">
+      <div class="checkbox">
+        <input id="agree" name="agree" type="checkbox">
+        <label for="agree">I agree to the terms<span class="req">*</span></label>
+      </div>
+      <div class="error" aria-live="polite"></div>
+    </div>
+
+    <button type="submit">Submit</button>
+    <div id="result" aria-live="polite"></div>
+  </form>
+
+  <script>
+    // Each rule returns an error message, or "" when the value is valid.
+    // Optional fields only validate format when something has been entered.
+    const rules = {
+      fullName: v => !v.trim() ? "Full name is required."
+        : v.trim().length < 2 ? "Enter at least 2 characters." : "",
+      email: v => !v.trim() ? "Email is required."
+        : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? "Enter a valid email address." : "",
+      phone: v => v.trim() && !/^\+?[\d\s().-]{7,20}$/.test(v.trim()) ? "Enter a valid phone number." : "",
+      category: v => !v ? "Please choose a category." : "",
+      quantity: v => {
+        if (v === "") return "";
+        const n = Number(v);
+        return !Number.isInteger(n) || n < 1 || n > 100 ? "Enter a whole number from 1 to 100." : "";
+      },
+      website: v => {
+        if (!v.trim()) return "";
+        try {
+          const u = new URL(v.trim());
+          return /^https?:$/.test(u.protocol) ? "" : "URL must start with http:// or https://.";
+        } catch { return "Enter a valid URL, e.g. https://example.com."; }
+      },
+      notes: v => v.length > 500 ? `Notes must be 500 characters or fewer (${v.length}).` : "",
+      agree: (_, el) => !el.checked ? "You must agree to continue." : ""
+    };
+
+    const form = document.getElementById("poc-form");
+    const result = document.getElementById("result");
+    const touched = new Set();
+
+    function validateField(el) {
+      const message = rules[el.name](el.value, el);
+      const field = el.closest(".field");
+      field.classList.toggle("invalid", !!message);
+      field.querySelector(".error").textContent = message;
+      el.setAttribute("aria-invalid", message ? "true" : "false");
+      return !message;
+    }
+
+    for (const name of Object.keys(rules)) {
+      const el = form.elements[name];
+      // Validate on blur first, then live once the user has interacted with the field.
+      el.addEventListener("blur", () => { touched.add(name); validateField(el); });
+      el.addEventListener("input", () => { if (touched.has(name)) validateField(el); });
+      el.addEventListener("change", () => { touched.add(name); validateField(el); });
+    }
+
+    const notes = form.elements.notes;
+    const notesCounter = document.getElementById("notesCounter");
+    notes.addEventListener("input", () => { notesCounter.textContent = `${notes.value.length} / 500`; });
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      result.className = "";
+      result.textContent = "";
+
+      let firstInvalid = null;
+      for (const name of Object.keys(rules)) {
+        const el = form.elements[name];
+        touched.add(name);
+        if (!validateField(el) && !firstInvalid) firstInvalid = el;
+      }
+
+      if (firstInvalid) {
+        firstInvalid.focus();
+        return;
+      }
+
+      const data = Object.fromEntries(new FormData(form));
+      data.agree = form.elements.agree.checked;
+      result.className = "ok";
+      result.textContent = "Submitted successfully.";
+      const pre = document.createElement("pre");
+      pre.textContent = JSON.stringify(data, null, 2);
+      result.appendChild(pre);
+    });
+  </script>
+</body>
+</html>
